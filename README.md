@@ -83,7 +83,7 @@ var test2 = new root.Test2("123");
 
 Example: [tests/complex.json](https://github.com/dcodeIO/ProtoBuf.js/tree/master/tests/complex.json)
 
-```javascript
+```
 var ProtoBuf = require("protobufjs");
 
 var builder = ProtoBuf.newBuilder();    // Alternatively:
