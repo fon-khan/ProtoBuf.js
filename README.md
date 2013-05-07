@@ -136,6 +136,105 @@ function readPB(pbnode, n)
 }
 ```
 
+```javascript
+//change protobuf to xml
+function pbDoc2Xml(pbdoc)
+{
+	var mes = [];
+	var child = pbdoc.ns.children;
+	for(var i = 0;i != child.length; ++i)
+	{
+		mes.push(child[i]);
+	}
+
+	for(var i=0;i != mes.length; ++i)
+	{
+		var insides = getInsideMessage(mes[i]);
+		for(var j = 0; j != insides.length; ++j)
+		{
+			mes.push(insides[j]);
+		}
+	}
+	
+	var header = getPBHeader(pbdoc);
+	var str = '';
+	var tmpstr;
+	for(var i = 0; i != mes.length; ++i)
+	{
+		if (mes[i] == header)
+			tmpstr =  pbMessage2Xml(mes[i], true);
+		else
+			tmpstr =  pbMessage2Xml(mes[i]);
+		if (tmpstr.length)
+			str += tmpstr + '\n\n';
+	}
+	return str;
+}
+
+function getInsideMessage(pbnode)
+{
+	var mes = [];
+	var child = pbnode.children;
+	for(var i = 0; i != child.length; ++i)
+	{
+		if (!("id" in child[i]))
+		{
+			mes.push(child[i]);
+		}
+	}
+	return mes;
+}
+
+function pbMessage2Xml(pbnode, isHeader)
+{
+	if (!(pbnode instanceof dcodeIO.ProtoBuf.Reflect.Message))
+		return '';
+
+	var str = '';
+	str = '<'+pbnode.name+' '+'type="message" ';
+	if (isHeader)
+		str += 'proto="protobuf"';
+	str += '>\n';
+	var child = pbnode.children;
+	for(var i = 0;i != child.length; ++i)
+	{
+		if ("id" in child[i])
+		{
+			str += printSpace(1);
+			if (child[i].type.name == 'message')//is message
+			{
+				str += '<'+child[i].resolvedType.name+' type="message" name="'+child[i].name+'"';
+			}else{
+				str += '<'+child[i].type.name+ ' name="'+child[i].name+'"';
+			}
+			str += ' id=' + child[i].id+' ';
+			if (child[i].repeated) //is array
+			{
+				str += ' repeated="1"';
+				if (child[i].options.packed)
+				{
+					str += ' packed="'+child[i].options.packed+'"';
+				}
+			}
+			if (!child[i].required && !child[i].repeated)//optional
+			{
+				str += ' optional="1" ';
+				if (child[i].options['default'])
+				{
+					str += ' value="'+child[i].options['default']+'"';
+				}else{
+					str += ' ';
+				}
+			}
+			str += '/>\n';
+
+		}
+	}
+	str += '</'+pbnode.name+'>';
+	return str;
+}
+```
+
 
 License
 -------
